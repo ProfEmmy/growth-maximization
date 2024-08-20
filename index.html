@@ -1,39 +1,43 @@
+</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form with reCAPTCHA</title>
+    <title>Form with reCAPTCHA v2</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
-    <!-- Embedded Google Form -->
     <iframe id="googleForm" src="https://docs.google.com/forms/d/e/1FAIpQLSenEqY0LlPhCuIqjjkn8VEYXf6pKit0wK9rZKcQ5CVfWRreRQ/viewform?embedded=true" width="100%" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
     
     <!-- Additional Form for reCAPTCHA Verification -->
     <div id="recaptcha-container">
         <h1>Complete the verification</h1>
-        <form id="captcha-form">
-            <div class="g-recaptcha" data-sitekey="6LfOiSsqAAAAAG1SjS1AtRVLkXvUIe2nSgofmldg"></div>
-            <button type="button" onclick="submitCaptcha()">Verify</button>
+        <form id="captcha-form" method="POST" onsubmit="return handleSubmit(event)">
+            <div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY"></div>
+            <button type="submit">Verify and Submit</button>
         </form>
         <div id="result"></div>
     </div>
 
     <script>
-        function submitCaptcha() {
-            var response = grecaptcha.getResponse();
-            if (response.length === 0) {
-                document.getElementById('result').innerText = 'Please complete the reCAPTCHA.';
-                return;
-            }
-            google.script.run.withSuccessHandler(handleSuccess).processForm(response);
+        function handleSubmit(event) {
+            event.preventDefault(); // Prevent the form from submitting immediately
+
+            grecaptcha.ready(function() {
+                grecaptcha.execute().then(function(token) {
+                    google.script.run.withSuccessHandler(handleSuccess).processForm(token);
+                });
+            });
+
+            return false; // Ensure the form does not submit before verification
         }
 
         function handleSuccess(result) {
             if (result === 'Success!') {
-                document.getElementById('result').innerText = 'Verification successful!';
-                document.getElementById('googleForm').style.display = 'none';
+                document.getElementById('result').innerText = 'Verification successful! Redirecting...';
+                // Optionally, you can now submit the form or redirect the user
+                document.getElementById('googleForm').style.display = 'none'; // Example of hiding the iframe
             } else {
                 document.getElementById('result').innerText = 'Captcha verification failed. Please try again.';
             }
